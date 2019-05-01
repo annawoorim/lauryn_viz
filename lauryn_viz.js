@@ -13,23 +13,23 @@ let switcher_genre = 'Hip-Hop / Rap / R&B';
 let description_y;
 let text_padding;
 let track_clicked = false;
-let current_track;
 let current_hover = null;
+let current_track =  null;
 let album_art = [];
 
 function preload() {
   sample_data = loadTable('data/lauryn_sampled.csv', 'csv', 'header');
-  
-  for (i = 0; i < album_art.length; i++) {
-    let album = loadImage('images/' + sample_data.getColumn('album_art')[i]);
-    album_art.push(image(album, width/2, description_y - (200/2) - text_padding, 200, 200));
-  }
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   track_size = (width - 300)/24;
   //track_size = height/24;
+  
+  for (i = 0; i < sample_data.getRowCount(); i++) {
+    //let album = loadImage('images/' + sample_data.getColumn('album_art')[i]);
+    album_art.push(loadImage('images/' + sample_data.getColumn('album_art')[i]));
+  }
 }
 
 
@@ -178,11 +178,10 @@ function draw() {
         fill('white');
         yearLabels();
         track.highlightByTrack(false);
-        track.show_description();
+        track.hoverTrack();
         
-        //if (track_clicked == true) {
-        if (current_hover != null) {
-          current_hover.info(); 
+        if (current_track != null) {
+          current_track.info();
         }
       }
       else if (switcher == 'Track') {
@@ -190,7 +189,11 @@ function draw() {
         yearLabels();
         if (sample_data.getColumn('track')[r] == switcher_track) {
           track.highlightByTrack(true);
-          track.show_description();
+          track.hoverTrack();
+          
+          if (current_track != null) {
+            current_track.info();
+          }
         }
         else {
           track.highlightByTrack(false);
@@ -201,7 +204,11 @@ function draw() {
         yearLabels();
         if (sample_data.getColumn('sampled_genre')[r] == switcher_genre) {
           track.highlightByTrack(true);
-          track.show_description();
+          track.hoverTrack();
+          
+          if (current_track != null) {
+            current_track.info();
+          }
         }
         else {
           track.highlightByTrack(false);
@@ -220,8 +227,6 @@ function draw() {
 function Track(track_title, track_artist, track_genre, track_year, sampled_track, track_image, 
   track_audio, x, y, size, padding, clicked) { 
   rectMode(CENTER);
-  //let track = rect(x, y, size, size);
-
   textAlign(CENTER);
   textSize(18);
 
@@ -267,29 +272,16 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
   this.size = function() {
     return size;
   }
-
-  //this.clicked;
   
-  this.show_description = function() {      
+  this.hoverTrack = function() {      
       if (mouseHover(x - (size/2), x + (size/2), y - (size/2), y + (size/2))) {
         current_hover = this;
+        
         fill('grey');
         rect(x, y, size, size);
         
-        print(track_image);
-        //let album_art = loadImage('images/' + track_image);
-        //image(track_image, width/2, description_y - (200/2) - text_padding, 200, 200);
-        
-        /*
-        fill('white');
-        rect(width/2, description_y - (200/2) - text_padding, 200, 200);
-        */
-        
-        fill('white');
-        text(track_title, width/2, description_y);
-        text(track_artist, width/2, description_y + text_padding);
-        text(track_year, width/2, description_y + (text_padding * 2));
-        text("Sampled: " + sampled_track, width/2, description_y + (text_padding * 3));
+        //imageMode(CENTER);
+        //image(track_image, x, y, size, size);
       }
   }
   
@@ -304,19 +296,19 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
     }
   }
   
-  this.info = function() {
-    if (track_clicked == true) {
+  this.info = function() {      
       fill('grey');
       rect(x, y, size, size);
       
+      imageMode(CENTER);
+      image(track_image, width/2, description_y - (200/2) - text_padding, 200, 200);
+      
       fill('white');
-      rect(width/2, description_y - (200/2) - text_padding, 200, 200);
-      text(track_year, width/2, description_y);
-      /*text(track_title, width/2, description_y);
+      //rect(width/2, description_y - (200/2) - text_padding, 200, 200);
+      text(track_title, width/2, description_y);
       text(track_artist, width/2, description_y + text_padding);
       text(track_year, width/2, description_y + (text_padding * 2));
-      text("Sampled: " + sampled_track, width/2, description_y + (text_padding * 3));*/
-    }
+      text("Sampled: " + sampled_track, width/2, description_y + (text_padding * 3));
   }
 }
 
@@ -367,35 +359,13 @@ function mouseClicked() {
     tab_y = 100;
   }
   
-  // check if track was clicked
-  
-  /*track_clicked = false;
-  if (current_hover != null) {
-    track_clicked = true;
-    //print(current_hover.title());
-  }*/
-  
   if (mouseHover(current_hover.x() - (current_hover.size()/2), current_hover.x() + 
     (current_hover.size()/2), current_hover.y() - (current_hover.size()/2), current_hover.y() + (current_hover.size()/2))) {
-    track_clicked = true;
+      current_track = current_hover;
   }
   else {
-    track_clicked = false;
+    current_track = null;
   }
-
-  /*
-  track_clicked = false;
-  all_tracks.forEach(function(t) {
-        t.clicked = false;
-        print(t.clicked);
-        current_track = t;
-        if (mouseHover(t.x() - (t.size()/2), t.x() + (t.size()/2), t.y() - (t.size()/2), t.y() + (t.size()/2))) {
-          track_clicked = true; 
-          t.clicked = true;
-          print(t.clicked);
-        }
-  });
-  */
 }
 
 function mouseHover(x1, x2, y1, y2) {
