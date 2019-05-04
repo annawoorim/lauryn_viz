@@ -15,10 +15,20 @@ let text_padding;
 let track_clicked = false;
 let current_hover = null;
 let current_track =  null;
+let current_audio = null;
 let album_art = [];
+let track_audio;
+let sample_audio;
+let original_audio;
+let lauryn_album_art;
 
 function preload() {
   sample_data = loadTable('data/lauryn_sampled.csv', 'csv', 'header');
+  
+  sample_audio = loadSound('audio/drake_nice.mp3');
+  original_audio = loadSound('audio/lauryn_ex.mp3');
+  
+  lauryn_album_art = loadImage('images/lauryn_miseducation.jpg');
 }
 
 function setup() {
@@ -27,7 +37,6 @@ function setup() {
   //track_size = height/24;
   
   for (i = 0; i < sample_data.getRowCount(); i++) {
-    //let album = loadImage('images/' + sample_data.getColumn('album_art')[i]);
     album_art.push(loadImage('images/' + sample_data.getColumn('album_art')[i]));
   }
 }
@@ -162,7 +171,7 @@ function draw() {
   all_tracks = [];
   for (let r = 0; r < sample_data.getRowCount(); r++) {
       track_position = float(sample_data.getColumn('sampled_year')[r]) - 1998;
-      track_x = 200 + (track_size * track_position) + (track_size/2);
+      track_x = 300 + (track_size * track_position) + (track_size/2);
       
       let track = new Track(sample_data.getColumn('sampled_title')[r], sample_data.getColumn('sampled_artist')[r],
         sample_data.getColumn('sampled_genre')[r], sample_data.getColumn('sampled_year')[r], 
@@ -190,6 +199,7 @@ function draw() {
         if (sample_data.getColumn('track')[r] == switcher_track) {
           track.highlightByTrack(true);
           track.hoverTrack();
+          track.hoverSampled();
           
           if (current_track != null) {
             current_track.info();
@@ -285,6 +295,19 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
       }
   }
   
+  this.hoverSampled = function() { 
+    
+    if (mouseHover(width/2 - 100, width/2 + 100, description_y - (200/2) - 
+      text_padding - 100, description_y - (200/2) - text_padding + 100)) {
+        
+      imageMode(CENTER);
+      image(lauryn_album_art, width/2, description_y - (200/2) - text_padding, 200, 200);
+      
+      fill('white');
+      text('Sampled: Ex-Factor', width/2, description_y);
+    }
+  }
+  
   this.highlightByTrack = function(highlighted) {
     if (highlighted) {
       fill('orange');
@@ -300,21 +323,32 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
       fill('grey');
       rect(x, y, size, size);
       
+      // show track album cover
       imageMode(CENTER);
       image(track_image, width/2, description_y - (200/2) - text_padding, 200, 200);
       
+      // show track description
       fill('white');
-      //rect(width/2, description_y - (200/2) - text_padding, 200, 200);
       text(track_title, width/2, description_y);
       text(track_artist, width/2, description_y + text_padding);
       text(track_year, width/2, description_y + (text_padding * 2));
       text("Sampled: " + sampled_track, width/2, description_y + (text_padding * 3));
+      
+      //sample_audio.play();
+      /*
+      // play audio
+      if (track_audio.isPlaying()) {
+      }
+      else {
+        track_audio.play();
+      }
+      */
   }
 }
 
 function yearLabels() {
   push();
-  let label_x = 200;
+  let label_x = 300;
   let year = 1998;
   for (let i = 0; i < 22; i++) {
     textAlign(CENTER);
@@ -361,10 +395,38 @@ function mouseClicked() {
   
   if (mouseHover(current_hover.x() - (current_hover.size()/2), current_hover.x() + 
     (current_hover.size()/2), current_hover.y() - (current_hover.size()/2), current_hover.y() + (current_hover.size()/2))) {
-      current_track = current_hover;
+    current_track = current_hover;
+    
+    //current_audio = sample_audio;
+    //current_audio.play();
+    if (sample_audio.isPlaying()) {
+      sample_audio.stop();
+    }
+    else {
+      sample_audio.play();
+    }
   }
   else {
     current_track = null;
+    //current_audio = null;
+    sample_audio.stop();
+  }
+  
+    
+  if (mouseHover(width/2 - 100, width/2 + 100, description_y - (200/2) - 
+      text_padding - 100, description_y - (200/2) - text_padding + 100)) {
+      imageMode(CENTER);
+      image(lauryn_album_art, width/2, description_y - (200/2) - text_padding, 200, 200);
+        
+      if (original_audio.isPlaying()) {
+        original_audio.stop();
+      }
+      else {
+        original_audio.play();
+      }
+    }
+    else {
+      original_audio.stop();
   }
 }
 
