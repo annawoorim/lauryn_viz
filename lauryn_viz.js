@@ -22,10 +22,13 @@ let lauryn_profile;
 let sampled_track_audio = [];
 let original_track_audio = [];
 let double_clicked = false;
+let header_image_size;
+let last_track = null;
 
 function preload() {
   sample_data = loadTable('data/lauryn_sampled.csv', 'csv', 'header');
   lauryn_tracks_data = loadTable('data/lauryn_tracks.csv', 'csv', 'header');
+  lauryn_sampled_clips_data = loadTable('data/lauryn_sampled_clips.csv', 'csv', 'header');
   
   lauryn_profile = loadImage('images/lauryn_hill_home.jpg');
   lauryn_miseducation = loadImage('images/lauryn_miseducation.jpg');
@@ -36,10 +39,9 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   track_size = (width - 300)/24;
   //track_size = height/24;
-  
+    
   for (i = 0; i < sample_data.getRowCount(); i++) {
     sampled_track_audio.push(loadSound('audio/' + sample_data.getColumn('sampled_audio')[i]));
-    print(sampled_track_audio[i]);
   }
   
   for (i = 0; i < sample_data.getRowCount(); i++) {
@@ -57,7 +59,7 @@ function draw() {
   // header
   tab_x = 50;
   tab_space = 50;
-  let header_image_size = 100;
+  header_image_size = 100;
   
   if (switcher_track == 'All Tracks') {
     image(lauryn_profile, tab_x, 20, header_image_size, header_image_size);
@@ -80,10 +82,11 @@ function draw() {
         }
         
         textSize(24);
-        text(switcher_track, tab_x + header_image_size + 20, 50);
+        text(switcher_track, tab_x + header_image_size + 20, 45);
         
-        textSize(18);
-        text(lauryn_tracks_data.getColumn('fact')[i], tab_x + header_image_size + 20, 80);
+        textSize(14);
+        text(lauryn_tracks_data.getColumn('fact')[i], tab_x + header_image_size + 20, 75);
+        
         /*
         if (lauryn_tracks_data.getColumn('sample_count')[i] == '1') {
           text('Sampled ' + lauryn_tracks_data.getColumn('sample_count')[i] + ' time', tab_x + header_image_size + 20, 80);
@@ -93,6 +96,37 @@ function draw() {
         }
         */
       }
+    }
+    
+    if (switcher == 'Track') {
+      fill('orange');
+      rect(tab_x + header_image_size + 20, 120, 164, 5)
+      // hover explore sample button
+      if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 184, 110 - 20, 110 + 20)) {
+        //rect(tab_x + header_image_size + 20, 120, 194, 5);
+        fill('orange');
+        rectMode(CORNER);
+        rect(tab_x + header_image_size + 20, 110 - 20, 164, 35);
+      }
+      
+      fill('white');
+      textSize(18);
+      text('Explore the samples', tab_x + header_image_size + 20, 110); 
+    }
+    else if (switcher == 'Sampled') {
+      fill('orange');
+      rect(tab_x + header_image_size + 20, 120, 178, 5)
+      // hover explore sample button
+      if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 198, 110 - 20, 110 + 20)) {
+        //rect(tab_x + header_image_size + 20, 120, 194, 5);
+        fill('orange');
+        rectMode(CORNER);
+        rect(tab_x + header_image_size + 20, 110 - 20, 178, 35);
+      }
+      
+      fill('white');
+      textSize(18);
+      text('Back to tracks by year', tab_x + header_image_size + 20, 110);   
     }
   }
   
@@ -118,19 +152,19 @@ function draw() {
   fill('orange');
   for (let i = 0; i < track_names.length; i++) {
     if (mouseHover(tab_x - 10, tab_x + 100, tab_y - 10 + (30 * i), tab_y + (30 * i))) {
-      rect(tab_x - 10, tab_y - 10 + (30 * i), 220, 10);
+      rect(tab_x - 10, tab_y - 10 + (30 * i), 235, 10);
     }
   }
   
   // click track tabs
   for (let i = 0; i < track_names.length; i++) {
     if (switcher_track == track_names[i]) {
-      rect(tab_x - 10, tab_y - 10 + (30 * i), 220, 10);
+      rect(tab_x - 10, tab_y - 10 + (30 * i), 235, 10);
     }
   }
   
   // track names
-  textSize(14);
+  textSize(16);
   textAlign(LEFT);
   fill('white');
   
@@ -157,48 +191,103 @@ function draw() {
     track_x = 300 + (track_size * track_position) + (track_size/2);
     
     let track = new Track(sample_data.getColumn('sampled_title')[r], sample_data.getColumn('sampled_artist')[r],
-      sample_data.getColumn('sampled_genre')[r], sample_data.getColumn('sampled_year')[r], 
-      sample_data.getColumn('track')[r], album_art[r], 
-      sampled_track_audio[r], original_track_audio[r], track_x, track_y[track_position], 
-      track_size - 10, track_padding, false); 
+      sample_data.getColumn('sampled_year')[r], sample_data.getColumn('track')[r], album_art[r], 
+      sampled_track_audio[r], track_x, track_y[track_position], track_size - 10); 
     
     all_tracks.push(track);
       
     track_y[track_position] = track_y[track_position] - track_size - track_padding;
        
-    fill('white');
-    yearLabels();
     
-    if (switcher_track == 'All Tracks') {
-      track.highlightByTrack(false);
-      track.hoverTrack();
+    if (switcher == 'Track') {
+      fill('white');
+      yearLabels();
       
-      if (current_track != null) {
-        current_track.info();
-        text("Sampled: " + current_track.sampled(), width/2, description_y + (text_padding * 2));
-      }
-    }
-    else if (sample_data.getColumn('track')[r] == switcher_track) {
-      if (switcher == 'Track') {
-        fill('white');
-        track.highlightByTrack(true);
+      if (switcher_track == 'All Tracks') {
+        track.highlightByTrack(false);
         track.hoverTrack();
         
         if (current_track != null) {
           current_track.info();
+          text("Sampled: " + current_track.sampled(), width/2, description_y + (text_padding * 2));
         }
       }
+      else if (sample_data.getColumn('track')[r] == switcher_track) {
+          fill('white');
+          track.highlightByTrack(true);
+          track.hoverTrack();
+          
+          if (current_track != null) {
+            current_track.info();
+          }
+      }
+      else {
+        track.highlightByTrack(false);
+      }
     }
-    else {
-      track.highlightByTrack(false);
+    else if (switcher == 'Sampled') {
+      let sampled_clip_x = 300 + track_size;
+      let sampled_clip_y = height - 50;
+      let track_timeline_width = track_size * 20;
+      
+      rectMode(CORNER);
+      rect(sampled_clip_x, sampled_clip_y, track_timeline_width, 2);
+      
+      for (let j = 0; j < lauryn_sampled_clips_data.getRowCount(); j++) {
+        fill('white');
+        if (lauryn_sampled_clips_data.getColumn('track_title')[j] == switcher_track) {
+          
+        }
+      }
+      
+      if (sample_data.getColumn('track')[r] == switcher_track) {
+        
+      }
     }
   }
   pop();
   
 }
 
-function Track(track_title, track_artist, track_genre, track_year, sampled_track, track_image, 
-  sampled_audio, original_audio, x, y, size, padding, clicked) { 
+function SampleTrack(track_title, track_audio, sample_time, sample_time_formatted, end_time, 
+end_time_formatted, x, y, size) { 
+  rectMode(CENTER);
+  textAlign(CENTER);
+  textSize(18);
+  
+  this.sampled_audio = function() {
+    return track_audio;
+  }
+  
+  this.x = function() {
+    return x;
+  }
+  
+  this.y = function() {
+    return y;
+  }
+  
+  this.size = function() {
+    return size;
+  }
+  
+  this.hoverTrack = function() {      
+      if (mouseHover(x - (size/2), x + (size/2), y - (size/2), y + (size/2))) {
+        current_hover = this;
+        
+        fill('grey');
+        rect(x, y, size, size);
+      }
+  }
+  
+  this.displayTrack = function() {
+    fill('white');
+    rect(x, y, size, size);
+  }
+}
+
+function Track(track_title, track_artist, track_year, sampled_track, track_image, 
+  sampled_audio, x, y, size) { 
   rectMode(CENTER);
   textAlign(CENTER);
   textSize(18);
@@ -210,34 +299,14 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
     return track_title;
   }
   
-  this.artist = function() {
-    return track_artist;
-  }
-  
-  this.year = function() {
-    return track_year;
-  }
-  
   this.sampled = function() {
     return sampled_track;
   }
-  
-  this.genre = function() {
-    return track_genre;
-  }
-  
-  this.image = function() {
-    return track_image;
-  }
-  
+
   this.sampled_audio = function() {
     return sampled_audio;
   }
-  
-  this.original_audio = function() {
-    return original_audio;
-  }
-  
+
   this.x = function() {
     return x;
   }
@@ -285,17 +354,6 @@ function Track(track_title, track_artist, track_genre, track_year, sampled_track
       fill('white');
       text(track_title, width/2, description_y);
       text(track_artist, width/2, description_y + text_padding);
-      //text("Sampled: " + sampled_track, width/2, description_y + (text_padding * 2));
-      
-      //sample_audio.play();
-      /*
-      // play audio
-      if (track_audio.isPlaying()) {
-      }
-      else {
-        track_audio.play();
-      }
-      */
   }
 }
 
@@ -314,74 +372,62 @@ function yearLabels() {
 }
 
 function mouseClicked() {  
-  /*if (mouseHover(tab_x - 30, tab_x + 50, tab_y - tab_space/2 + tab_space, tab_y + tab_space)) {
-    switcher = 'Track';
-  }*/
-  
-  if (switcher == 'Track') {    
-    tab_y = 200;
-    for (let i = 0; i < track_names.length; i++) {
-      if (mouseHover(tab_x - 10, tab_x + 100, tab_y - 10 + (30 * i), tab_y + (30 * i))) {
-        switcher_track = track_names[i];
-      }
-    }
-  }
-  
-  if (mouseHover(current_hover.x() - (current_hover.size()/2), current_hover.x() + 
-    (current_hover.size()/2), current_hover.y() - (current_hover.size()/2), current_hover.y() + (current_hover.size()/2))) {
+  if (switcher_track == 'All Tracks') {
     
-    //track_clicked = true;
-    current_track = current_hover;
-    
-    if (current_audio != null) {
-      if (current_audio.isPlaying()) {
-        current_audio.stop();
-      }
-    }
-    
-    current_audio = current_track.sampled_audio();
-    
-    //if (current_audio != null && double_clicked == false) {
-    if (current_audio != null) {
-      if (current_audio.isPlaying() == false) {
-        current_audio.play();
-      }
-    }
-    
-    /*
-    if (current_audio != null) {
-      if (current_audio.isPlaying()) {
-        current_audio.stop();
-      }
-      else {
-        current_audio.play();
-      }
-    }
-    */
   }
   else {
-    //track_clicked = false;
-    
-    if (current_audio != null) {
-      current_audio.stop();
-    }
-    
-    current_audio = null;
-    current_track = null;
-  }
-  
-  if (current_track != null) {
-    if (mouseHover(current_track.x() - (current_track.size()/2), current_track.x() + 
-    (current_track.size()/2), current_track.y() - (current_track.size()/2), current_track.y() + 
-    (current_track.size()/2))) {
-      double_clicked = true;
+    if (switcher == 'Track') {
+      if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 184, 110 - 20, 110 + 20)) {
+        switcher = 'Sampled';
+      }
     }
     else {
-      double_clicked = false;
+      if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 184, 110 - 20, 110 + 20)) {
+        switcher = 'Track';
+      }
     }
   }
-  else {
-    double_clicked = false;
+    
+  tab_y = 200;
+  for (let i = 0; i < track_names.length; i++) {
+    if (mouseHover(tab_x - 10, tab_x + 100, tab_y - 10 + (30 * i), tab_y + (30 * i))) {
+      switcher_track = track_names[i];
+      switcher = 'Track';
+    }
+  }
+  
+  if (current_hover != null) {
+    if (mouseHover(current_hover.x() - (current_hover.size()/2), current_hover.x() + 
+      (current_hover.size()/2), current_hover.y() - (current_hover.size()/2), current_hover.y() + (current_hover.size()/2))) {
+      
+      current_track = current_hover;
+      
+      if (current_audio != null && current_audio.isPlaying()) {
+        current_audio.stop();
+      }
+
+      current_audio = current_track.sampled_audio();
+
+      if (current_audio != null) {
+        if (current_audio.isPlaying() == false) {
+          if (last_track != current_track.title()) {
+            current_audio.play();
+            last_track = current_track.title();
+          }
+          else {
+            last_track = null;
+          }
+        }
+      }
+    }
+    else {
+      if (current_audio != null) {
+        current_audio.stop();
+      }
+      
+      current_audio = null;
+      current_track = null;
+    }
   }
 }
 
