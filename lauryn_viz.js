@@ -44,6 +44,10 @@ function setup() {
     sampled_track_audio.push(loadSound('audio/' + sample_data.getColumn('sampled_audio')[i]));
   }
   
+  for (i = 0; i < lauryn_sampled_clips_data.getRowCount(); i++) {
+    original_track_audio.push(loadSound('audio/' + lauryn_sampled_clips_data.getColumn('audio')[i]));
+  }
+  
   for (i = 0; i < sample_data.getRowCount(); i++) {
     album_art.push(loadImage('images/' + sample_data.getColumn('album_art')[i]));
   }
@@ -69,7 +73,7 @@ function draw() {
     text('The Influence of Lauryn Hill', tab_x + header_image_size + 20, 50);
     
     textSize(18);
-    text('Exploring 78 songs that sample from the hip hop icon', tab_x + header_image_size + 20, 80);
+    text('Exploring 78 songs that sample the hip hop icon', tab_x + header_image_size + 20, 80);
   }
   else {
     for (i = 0; i < lauryn_tracks_data.getRowCount(); i++) {
@@ -192,7 +196,7 @@ function draw() {
     
     let track = new Track(sample_data.getColumn('sampled_title')[r], sample_data.getColumn('sampled_artist')[r],
       sample_data.getColumn('sampled_year')[r], sample_data.getColumn('track')[r], album_art[r], 
-      sampled_track_audio[r], track_x, track_y[track_position], track_size - 10); 
+      sampled_track_audio[r], track_x, track_y[track_position], track_size - 10, track_size - 10, 0, 0, 0, 0); 
     
     all_tracks.push(track);
       
@@ -227,21 +231,49 @@ function draw() {
     }
     else if (switcher == 'Sampled') {
       let sampled_clip_x = 300 + track_size;
-      let sampled_clip_y = height - 50;
+      let sampled_clip_y = height - 100;
       let track_timeline_width = track_size * 20;
       
+      // track timeline
       rectMode(CORNER);
       rect(sampled_clip_x, sampled_clip_y, track_timeline_width, 2);
       
       for (let j = 0; j < lauryn_sampled_clips_data.getRowCount(); j++) {
-        fill('white');
-        if (lauryn_sampled_clips_data.getColumn('track_title')[j] == switcher_track) {
-          
-        }
-      }
-      
-      if (sample_data.getColumn('track')[r] == switcher_track) {
         
+        let track_x;
+        // handle overlapping clips
+        if(lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_lost_ones_10.mp3') {
+          track_x = sampled_clip_x + 10 + (lauryn_sampled_clips_data.getColumn('sample_time')[j])/
+          (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width;
+        }
+        else if(lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_doo_wop_4.mp3') {
+          track_x = sampled_clip_x + 10 +(lauryn_sampled_clips_data.getColumn('sample_time')[j])/
+          (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width;
+        }
+        else {
+          track_x = sampled_clip_x + (lauryn_sampled_clips_data.getColumn('sample_time')[j])/
+          (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width;
+        }
+        
+        let lauryn_track = new Track(lauryn_sampled_clips_data.getColumn('track_title')[j], 
+        'Lauryn Hill', '1998', 'Original', lauryn_miseducation, 
+        original_track_audio[j], track_x, sampled_clip_y, track_size - 40, track_size, 
+        lauryn_sampled_clips_data.getColumn('sample_time')[j], 
+        lauryn_sampled_clips_data.getColumn('sample_time_formatted')[j], 
+        lauryn_sampled_clips_data.getColumn('end_time')[j], 
+        lauryn_sampled_clips_data.getColumn('end_time_formatted')[j]); 
+        
+        // track time labels
+        fill('white');
+        
+        if (lauryn_sampled_clips_data.getColumn('track_title')[j] == switcher_track) {
+          lauryn_track.displayTrack();
+          lauryn_track.hoverTrack();
+          
+          if (current_track != null) {
+            current_track.info();
+          }
+        }
       }
     }
   }
@@ -249,45 +281,8 @@ function draw() {
   
 }
 
-function SampleTrack(track_title, track_audio, sample_time, sample_time_formatted, end_time, 
-end_time_formatted, x, y, size) { 
-  rectMode(CENTER);
-  textAlign(CENTER);
-  textSize(18);
-  
-  this.sampled_audio = function() {
-    return track_audio;
-  }
-  
-  this.x = function() {
-    return x;
-  }
-  
-  this.y = function() {
-    return y;
-  }
-  
-  this.size = function() {
-    return size;
-  }
-  
-  this.hoverTrack = function() {      
-      if (mouseHover(x - (size/2), x + (size/2), y - (size/2), y + (size/2))) {
-        current_hover = this;
-        
-        fill('grey');
-        rect(x, y, size, size);
-      }
-  }
-  
-  this.displayTrack = function() {
-    fill('white');
-    rect(x, y, size, size);
-  }
-}
-
 function Track(track_title, track_artist, track_year, sampled_track, track_image, 
-  sampled_audio, x, y, size) { 
+  sampled_audio, x, y, track_width, track_height, sample_time, sample_time_formatted, end_time, end_time_formatted) { 
   rectMode(CENTER);
   textAlign(CENTER);
   textSize(18);
@@ -315,36 +310,49 @@ function Track(track_title, track_artist, track_year, sampled_track, track_image
     return y;
   }
   
-  this.size = function() {
+  /*this.size = function() {
     return size;
+  }
+  */
+  this.track_width = function() {
+    return track_width;
+  }
+  
+  this.track_height = function() {
+    return track_width;
+  }
+  
+  this.displayTrack = function() {
+    fill('white');
+    rect(x, y, track_width, track_height);
   }
   
   this.hoverTrack = function() {      
-      if (mouseHover(x - (size/2), x + (size/2), y - (size/2), y + (size/2))) {
+      if (mouseHover(x - (track_width/2), x + (track_width/2), y - (track_height/2), y + (track_height/2))) {
         current_hover = this;
         
         fill('grey');
-        rect(x, y, size, size);
+        rect(x, y, track_width, track_height);
         
         //imageMode(CENTER);
-        //image(track_image, x, y, size, size);
+        //image(track_image, x, y, track_width, track_height);
       }
   }
   
   this.highlightByTrack = function(highlighted) {
     if (highlighted) {
       fill('orange');
-      rect(x, y, size, size);
+      rect(x, y, track_width, track_height);
     }
     else {
       fill('white');
-      rect(x, y, size, size);
+      rect(x, y, track_width, track_height);
     }
   }
   
   this.info = function() {      
       fill('grey');
-      rect(x, y, size, size);
+      rect(x, y, track_width, track_height);
       
       // show track album cover
       imageMode(CENTER);
@@ -397,8 +405,9 @@ function mouseClicked() {
   }
   
   if (current_hover != null) {
-    if (mouseHover(current_hover.x() - (current_hover.size()/2), current_hover.x() + 
-      (current_hover.size()/2), current_hover.y() - (current_hover.size()/2), current_hover.y() + (current_hover.size()/2))) {
+    if (mouseHover(current_hover.x() - (current_hover.track_width()/2), current_hover.x() + 
+      (current_hover.track_width()/2), current_hover.y() - (current_hover.track_height()/2), current_hover.y() 
+      + (current_hover.track_height()/2))) {
       
       current_track = current_hover;
       
