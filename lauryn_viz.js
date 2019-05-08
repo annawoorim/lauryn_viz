@@ -33,12 +33,15 @@ function preload() {
   lauryn_profile = loadImage('images/lauryn_hill_home.jpg');
   lauryn_miseducation = loadImage('images/lauryn_miseducation.jpg');
   lauryn_unplugged = loadImage('images/lauryn_unplugged.jpg');
+  
+  
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   track_size = (width - 300)/24;
   //track_size = height/24;
+   
     
   for (i = 0; i < sample_data.getRowCount(); i++) {
     sampled_track_audio.push(loadSound('audio/' + sample_data.getColumn('sampled_audio')[i]));
@@ -55,9 +58,12 @@ function setup() {
 
 
 function draw() {
+  print(sampled_track_audio[38].isLoaded());
+  
   background('black');
   fill('white');
   
+  if (filesLoaded()) {
   push();
   
   // header
@@ -353,8 +359,11 @@ function draw() {
         }
       }
     }
-  pop();
-  
+  pop(); 
+}
+else {
+  text("not ready", width/2, height/2);
+}
 }
 
 function Track(track_title, track_title_alt, track_artist, track_year, sampled_track, track_image, 
@@ -537,4 +546,19 @@ function mouseHover(x1, x2, y1, y2) {
   else {
     return false;
   }
+}
+
+function filesLoaded() {  
+  for (i = 0; i < sample_data.getRowCount(); i++) {
+    if (sampled_track_audio[i].isLoaded() == false) {
+      return false;
+    }
+  }
+  
+  for (i = 0; i < lauryn_sampled_clips_data.getRowCount(); i++) {
+    if (original_track_audio[i].isLoaded() == false) {
+      return false;
+    }
+  }  
+  return true;
 }
