@@ -38,7 +38,7 @@ function preload() {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  track_size = (width - 300)/24;
+  track_size = (width - 250)/24;
   //track_size = height/24;
   
   // load sampled tracks
@@ -59,8 +59,10 @@ function setup() {
 
 
 function draw() {  
-  background('black');
+  //clear();
+  background(0);
   fill('white');
+  noStroke();
   
   if (filesLoaded()) {
     push();
@@ -229,22 +231,22 @@ function draw() {
     // show tracks by sample track and time
     else if (switcher == 'Sampled') {
         let sampled_clip_x = 300 + track_size;
-        let sampled_clip_y = height - 100;
+        let sampled_clip_y = height - 80;
         let track_timeline_width = track_size * 20;
+        let track_start_label_x = 260 + track_size;
+        let track_end_label_x = 300 + track_size + track_timeline_width + 40;
+        let track_label_y = height - 72;
         let track_x;
         
         // track timeline
         rectMode(CORNER);
         rect(sampled_clip_x, sampled_clip_y, track_timeline_width, 2);
         
+        
         for (let j = 0; j < lauryn_sampled_clips_data.getRowCount(); j++) {
           // handle overlapping clips
           if (lauryn_sampled_clips_data.getColumn('track_title')[j] == 'Lost Ones') {
-            if (lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_lost_ones_10.mp3') {
-              track_x = sampled_clip_x + (track_size/2) + (lauryn_sampled_clips_data.getColumn('sample_time')[j])/
-              (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width * 1.2;
-            }
-            else if (lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_lost_ones_3.mp3') {
+            if (lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_lost_ones_3.mp3') {
               track_x = sampled_clip_x + (track_size/2) + (lauryn_sampled_clips_data.getColumn('sample_time')[j])/
               (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width * 1.2;
             }
@@ -259,7 +261,11 @@ function draw() {
           }
           else if (lauryn_sampled_clips_data.getColumn('track_title')[j] == 'Doo Wop (That Thing)') {
             if (lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_doo_wop_4.mp3') {
-              track_x = sampled_clip_x + (track_size/2) +(lauryn_sampled_clips_data.getColumn('sample_time')[j])/
+              track_x = sampled_clip_x + ((track_size/2) + 30) +(lauryn_sampled_clips_data.getColumn('sample_time')[j])/
+              (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width * 1.2;
+            }
+            else if (lauryn_sampled_clips_data.getColumn('audio')[j] == 'lauryn_doo_wop_9.mp3') {
+              track_x = sampled_clip_x + (track_size/2) - 20 +(lauryn_sampled_clips_data.getColumn('sample_time')[j])/
               (lauryn_sampled_clips_data.getColumn('end_time')[j]) * track_timeline_width * 1.2;
             }
             else {
@@ -280,15 +286,24 @@ function draw() {
           lauryn_sampled_clips_data.getColumn('end_time')[j], 
           lauryn_sampled_clips_data.getColumn('end_time_formatted')[j]); 
           
-          // track time labels
-          fill('white');        
-          
           if (lauryn_sampled_clips_data.getColumn('track_title')[j] == switcher_track) {
+            // track time labels
+            fill('white'); 
+            textSize(14);
+            textAlign(CENTER);
+            text('0:00', track_start_label_x, track_label_y);
+            text(lauryn_sampled_clips_data.getColumn('end_time_formatted')[j], track_end_label_x, track_label_y);
+            
             lauryn_track.displayTrack();
             lauryn_track.hoverTrack();
             
             if (current_track != null) {
-              current_track.info();
+              current_track.info_alt();
+              fill('white');
+              textSize(14);
+              text(current_track.title(), width/2, description_y);
+              text(current_track.artist(), width/2, description_y + (text_padding));
+              text(current_track.sample_time(), width/2, description_y + (text_padding * 2));
             }
           }
         }
@@ -296,7 +311,7 @@ function draw() {
         let sampled_track_position;
         for (let i = 1; i < 53; i++) {
             //sampled_track_y[i] = height - 40 - track_size;
-            sampled_track_y[i] = height - 175;
+            sampled_track_y[i] = height - 125;
         }
         
         for (let r = 0; r < sample_data.getRowCount(); r++) {
@@ -305,11 +320,7 @@ function draw() {
           
           // handle overlapping clips
           if (sample_data.getColumn('track')[r] == 'Lost Ones') {
-            if (sample_data.getColumn('original_audio')[r] == 'lauryn_lost_ones_10.mp3') {
-              sampled_track_x = sampled_clip_x + (track_size/2) + (sample_data.getColumn('track_sample_time')[r])/
-              (sample_data.getColumn('end_time')[r]) * track_timeline_width * 1.2;
-            }
-            else if (sample_data.getColumn('original_audio')[r] == 'lauryn_lost_ones_3.mp3') {
+            if (sample_data.getColumn('original_audio')[r] == 'lauryn_lost_ones_3.mp3') {
               sampled_track_x = sampled_clip_x + (track_size/2) + (sample_data.getColumn('track_sample_time')[r])/
               (sample_data.getColumn('end_time')[r]) * track_timeline_width * 1.2;
             }
@@ -324,7 +335,11 @@ function draw() {
           }
           else if (sample_data.getColumn('track')[r] == 'Doo Wop (That Thing)') {
             if (sample_data.getColumn('original_audio')[r] == 'lauryn_doo_wop_4.mp3') {
-              sampled_track_x = sampled_clip_x + (track_size/2) + (sample_data.getColumn('track_sample_time')[r])/
+              sampled_track_x = sampled_clip_x + ((track_size/2) + 30) + (sample_data.getColumn('track_sample_time')[r])/
+              (sample_data.getColumn('end_time')[r]) * track_timeline_width * 1.2;
+            }
+            else if (sample_data.getColumn('original_audio')[r] == 'lauryn_doo_wop_9.mp3') {
+              sampled_track_x = sampled_clip_x + ((track_size/2) - 20) + (sample_data.getColumn('track_sample_time')[r])/
               (sample_data.getColumn('end_time')[r]) * track_timeline_width * 1.2;
             }
             else {
@@ -337,9 +352,10 @@ function draw() {
             (sample_data.getColumn('end_time')[r]) * track_timeline_width;
           }
           
-          let sampled_track = new Track(sample_data.getColumn('sampled_title')[r], '', sample_data.getColumn('sampled_artist')[r],
-          sample_data.getColumn('sampled_year')[r], sample_data.getColumn('track')[r], album_art[r], 
-          sampled_track_audio[r], sampled_track_x, sampled_track_y[sampled_track_position], track_size - 10, track_size - 10, 0, 0, 0, 0); 
+          let sampled_track = new Track(sample_data.getColumn('sampled_title')[r], sample_data.getColumn('sampled_title')[r], 
+          sample_data.getColumn('sampled_artist')[r], sample_data.getColumn('sampled_year')[r], sample_data.getColumn('track')[r], 
+          album_art[r], sampled_track_audio[r], sampled_track_x, sampled_track_y[sampled_track_position], 
+          track_size - 10, track_size - 10, 0, sample_data.getColumn('sampled_time')[r], 0, 0); 
             
           sampled_track_y[sampled_track_position] = sampled_track_y[sampled_track_position] - track_size - track_padding;
           
@@ -348,7 +364,12 @@ function draw() {
               sampled_track.hoverTrack();
               
               if (current_track != null) {
-                current_track.info();
+                current_track.info_alt();
+                fill('white');
+                textSize(14);
+                text(current_track.title(), width/2, description_y);
+                text(current_track.artist(), width/2, description_y + (text_padding));
+                text(current_track.sample_time(), width/2, description_y + (text_padding * 2));
               }
           }
         }
@@ -376,6 +397,10 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
     return track_title;
   }
   
+  this.title_alt = function() {
+    return track_title_alt;
+  }
+  
   this.sampled = function() {
     return sampled_track;
   }
@@ -390,6 +415,14 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
   
   this.y = function() {
     return y;
+  }
+  
+  this.artist = function() {
+    return track_artist;
+  }
+  
+  this.sample_time = function() {
+    return sample_time_formatted;
   }
   
   /*this.size = function() {
@@ -435,10 +468,11 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
       
       // show track album cover
       imageMode(CENTER);
-      image(track_image, width/2, description_y - (200/2) - text_padding, 200, 200);
+      image(track_image, width/2, description_y - (150/2) - text_padding, 150, 150);
       
       // show track description
       fill('white');
+      textSize(14);
       text(track_title, width/2, description_y);
       text(track_artist, width/2, description_y + text_padding);
   }
@@ -449,12 +483,7 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
       
       // show track album cover
       imageMode(CENTER);
-      image(track_image, width/2, description_y - (200/2) - text_padding, 200, 200);
-      
-      // show track description
-      fill('white');
-      text(track_title_alt, width/2, description_y);
-      text('Sampled at: ' + sample_time_formatted, width/2, description_y + text_padding);
+      image(track_image, width/2, description_y - (150/2) - text_padding, 150, 150);
   }
 }
 
@@ -465,6 +494,7 @@ function yearLabels() {
   for (let i = 0; i < 20; i++) {
     textAlign(CENTER);
     textSize(12);
+    noStroke();
     text(year.toString(), label_x + (track_size/2), height - 50)
     label_x = label_x + track_size;
     year++;
