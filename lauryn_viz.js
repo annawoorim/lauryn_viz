@@ -24,6 +24,10 @@ let header_image_size;
 let last_track = null;
 let sampled_track_y = [];
 let ostrichSans;
+let aspectTop, aspectLeft;
+let aspectScale = 1;
+const WIDE = 1280;
+const HIGH = 739;
 
 function preload() {
   // load data
@@ -42,8 +46,9 @@ function preload() {
 }
 
 function setup() {
+  //createCanvas(windowWidth, windowHeight);
   createCanvas(windowWidth, windowHeight);
-  track_size = (width - 250)/24;
+  track_size = (WIDE - 250)/24;
   //track_size = height/24;
   
   // load sampled tracks
@@ -64,6 +69,7 @@ function setup() {
 
 
 function draw() {  
+  applyAspect();
   clear();
   background(0);
   fill('white');
@@ -106,16 +112,6 @@ function draw() {
           // show track fact
           textSize(16);
           text(lauryn_tracks_data.getColumn('fact')[i], tab_x + header_image_size + 20, 75);
-          
-          /*
-          // show number of times track was sampled
-          if (lauryn_tracks_data.getColumn('sample_count')[i] == '1') {
-            text('Sampled ' + lauryn_tracks_data.getColumn('sample_count')[i] + ' time', tab_x + header_image_size + 20, 80);
-          }
-          else {
-            text('Sampled ' + lauryn_tracks_data.getColumn('sample_count')[i] + ' times', tab_x + header_image_size + 20, 80);
-          }
-          */
         }
       }
       
@@ -124,7 +120,6 @@ function draw() {
         rect(tab_x + header_image_size + 20, 120, 136, 5)
         // hover explore sample button
         if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 184, 110 - 20, 110 + 20)) {
-          //rect(tab_x + header_image_size + 20, 120, 194, 5);
           fill('#e88a1a');
           rectMode(CORNER);
           rect(tab_x + header_image_size + 20, 110 - 20, 136, 35);
@@ -139,7 +134,6 @@ function draw() {
         rect(tab_x + header_image_size + 20, 120, 163, 5)
         // hover explore sample button
         if (mouseHover(tab_x + header_image_size + 20, tab_x + header_image_size + 198, 110 - 20, 110 + 20)) {
-          //rect(tab_x + header_image_size + 20, 120, 194, 5);
           fill('#e88a1a');
           rectMode(CORNER);
           rect(tab_x + header_image_size + 20, 110 - 20, 163, 35);
@@ -190,7 +184,7 @@ function draw() {
     let track_x;
     let track_y = [];
     for (let i = 0; i < 22; i++) {
-      track_y[i] = height - 50 - track_size;
+      track_y[i] = HIGH - 50 - track_size;
     }
     
     // show tracks by year
@@ -238,11 +232,11 @@ function draw() {
     // show tracks by sample track and time
     else if (switcher == 'Sampled') {
         let sampled_clip_x = 300 + track_size;
-        let sampled_clip_y = height - 80;
+        let sampled_clip_y = HIGH - 80;
         let track_timeline_width = track_size * 20;
         let track_start_label_x = 260 + track_size;
         let track_end_label_x = 300 + track_size + track_timeline_width + 40;
-        let track_label_y = height - 72;
+        let track_label_y = HIGH - 72;
         let track_x;
         
         // track timeline
@@ -318,7 +312,7 @@ function draw() {
         let sampled_track_position;
         for (let i = 1; i < 53; i++) {
             //sampled_track_y[i] = height - 40 - track_size;
-            sampled_track_y[i] = height - 125;
+            sampled_track_y[i] = HIGH - 125;
         }
         
         for (let r = 0; r < sample_data.getRowCount(); r++) {
@@ -386,7 +380,7 @@ function draw() {
   else {
     textAlign(CENTER);
     textSize(24);
-    text("Loading tracks...", width/2, height/2);
+    text("Loading tracks...", WIDE/2, HIGH/2);
     textAlign(LEFT);
   }
 }
@@ -398,7 +392,7 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
   textSize(18);
 
   description_y = 300;
-  description_x = width/2 + 50;
+  description_x = WIDE/2 + 50;
   text_padding = 25;
   
   this.title = function() {
@@ -433,10 +427,6 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
     return sample_time_formatted;
   }
   
-  /*this.size = function() {
-    return size;
-  }
-  */
   this.track_width = function() {
     return track_width;
   }
@@ -455,8 +445,8 @@ function Track(track_title, track_title_alt, track_artist, track_year, sampled_t
         current_hover = this;
         
         fill('#d9d9d9');
-        //rect(x, y, track_width, track_height);
-        triangle(x - (track_width/4), y + (track_height/4), x - (track_width/4), y - (track_height/4), x + (track_width/4), y);
+        rect(x, y, track_width, track_height);
+        //triangle(x - (track_width/4), y + (track_height/4), x - (track_width/4), y - (track_height/4), x + (track_width/4), y);
       }
   }
   
@@ -505,7 +495,7 @@ function yearLabels() {
     textAlign(CENTER);
     textSize(14);
     noStroke();
-    text(year.toString(), label_x + (track_size/2), height - 50);
+    text(year.toString(), label_x + (track_size/2), HIGH - 50);
     label_x = label_x + track_size;
     year++;
   }
@@ -577,7 +567,7 @@ function mouseClicked() {
 }
 
 function mouseHover(x1, x2, y1, y2) {
-  if (mouseX >= x1 && mouseX <= x2 && mouseY >= y1 && mouseY <= y2) {
+  if (amouseX() >= x1 && amouseX() <= x2 && amouseY() >= y1 && amouseY() <= y2) {
     return true;
   }
   else {
@@ -599,4 +589,29 @@ function filesLoaded() {
     }
   }  
   return true;
+}
+
+// take care of resizing window
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
+function applyAspect() {
+  let aspectX = width / WIDE;
+  let aspectY = height / HIGH;
+  aspectScale = min(aspectX, aspectY);
+  let h = floor(aspectScale * HIGH);
+  aspectTop = (height - h) / 2;
+  let w = floor(aspectScale * WIDE);
+  aspectLeft = (width - w) / 2;
+  translate(aspectLeft, aspectTop);
+  scale(aspectScale, aspectScale);
+}
+
+function amouseX() {
+  return floor((mouseX - aspectLeft) / aspectScale);
+}
+
+function amouseY() {
+  return floor((mouseY - aspectTop) / aspectScale);
 }
